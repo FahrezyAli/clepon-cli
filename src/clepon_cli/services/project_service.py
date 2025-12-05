@@ -25,8 +25,12 @@ def store_token_in_toml(token: str, config_path: Path) -> None:
 
 
 def find_python_files(directory: Path) -> List[Path]:
-    """Recursively find all python files in directory and subdirectories"""
-    return list(directory.rglob("*.py"))
+    files = directory.rglob("*.py")
+    return [
+        f
+        for f in files
+        if not any(part.startswith(".") for part in f.relative_to(directory).parts)
+    ]
 
 
 def extract_function_info(node: ast.FunctionDef, filepath: str) -> Function:
