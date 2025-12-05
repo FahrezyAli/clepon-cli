@@ -14,10 +14,10 @@ dependencies = [
 ]
 
 [tool.poetry]
-packages = [{include = "clepon_cli", from = "src"}]
+packages = [{include = "clepon", from = "src"}]
 
 [project.scripts]
-clepon = "clepon_cli.main:app"
+clepon = "clepon.main:app"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

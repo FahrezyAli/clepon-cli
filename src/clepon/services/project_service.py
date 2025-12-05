@@ -36,7 +36,9 @@ def find_python_files(directory: Path) -> List[Path]:
 def extract_function_info(node: ast.FunctionDef, filepath: str) -> Function:
     """Extract function information from an AST node"""
     # Generate unique identifier for the function
-    func_id = f"{filepath}:{node.name}:{node.lineno}"
+    filename = Path(filepath).name
+
+    func_id = f"{filename}:{node.name}:{node.lineno}"
 
     # Extract source code
     source_lines = ast.get_source_segment(open(filepath).read(), node)
@@ -67,7 +69,7 @@ def extract_function_info(node: ast.FunctionDef, filepath: str) -> Function:
         source_code=source_lines,
         input=arguments,
         output_type=output_type,
-        file=filepath,
+        file=filename,
     )
 
 
