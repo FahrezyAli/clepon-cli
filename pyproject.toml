@@ -1,20 +1,20 @@
 [project]
 name = "clepon-cli"
 version = "0.1.0"
-description = ""
+description = "clepon is a combination of cli frontend and fastapi backend to leverage large language models for commit-based defect prediction and automated whitebox testing"
 authors = [
-    {name = "Ali Ahmad Fahrezy",email = "47922563+FahrezyAli@users.noreply.github.com"}
+    { name = "Ali Ahmad Fahrezy", email = "47922563+FahrezyAli@users.noreply.github.com" },
 ]
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
     "typer (>=0.20.0,<0.21.0)",
     "toml (>=0.10.2,<0.11.0)",
-    "pydantic (>=2.12.5,<3.0.0)"
+    "pydantic (>=2.12.5,<3.0.0)",
 ]
 
 [tool.poetry]
-packages = [{include = "clepon", from = "src"}]
+packages = [{ include = "clepon", from = "src" }]
 
 [project.scripts]
 clepon = "clepon.main:app"
@@ -24,6 +24,4 @@ requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [dependency-groups]
-dev = [
-    "black (>=25.11.0,<26.0.0)"
-]
+dev = ["black (>=25.11.0,<26.0.0)"]

@@ -2,4 +2,4 @@
 python = "latest"
 
 [env]
-_.python.venv = { path = ".venv", create = true}
+_.python.venv = { path = ".venv", create = true }
