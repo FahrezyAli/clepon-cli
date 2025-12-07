@@ -1,5 +1,6 @@
 import typer
 import json
+import requests
 from pathlib import Path
 from rich.console import Console
 
@@ -49,18 +50,37 @@ def init():
     # Step 5: Create project data
     project_data = Project(project_token=project_token, functions=all_functions)
 
-    # Step 6: Write to JSON file (for debugging for now instead of API call)
-    output_path = pwd / "project_data.json"
-    with open(output_path, "w", encoding="utf-8") as json_file:
-        json.dump(project_data.model_dump(), json_file)
+    # Step 6: Send to vectorization API endpoint
+    console.print("🔄 Sending data to API for vectorization...")
+    api_endpoint = "http://127.0.0.1:8001/projects/vectorize"
 
-    console.print(f"✅ Project data written to {output_path}")
-    console.print("🎉 Initialization complete!")
+    try:
+        response = requests.post(
+            api_endpoint,
+            json=project_data.model_dump(),
+            headers={"Content-Type": "application/json"},
+            timeout=30,
+        )
+        response.raise_for_status()
 
-    # TODO: Send to API endpoint
-    # api_endpoint = "https://api.example.com/projects"
-    # response = request.post(
-    #   apt_endpoint,
-    #   json=project_data.model_dump(),
-    #   headers={"Content-Type": "application/json"}
-    # )
+        # Parse successful response
+        result = response.json()
+        console.print(
+            f"✅ Successfully vectorized {result['processed_count']} functions"
+        )
+        console.print(f"📦 Project ID: {result['project_id'][:20]}...")
+        console.print("🎉 Initialization complete!")
+
+    except requests.exceptions.ConnectionError:
+        err_console.print("❌ Error: Could not connect to API server")
+        err_console.print(
+            "   Please ensure the FastAPI server is running at http://127.0.0.1:8001"
+        )
+    except requests.exceptions.Timeout:
+        err_console.print("❌ Error: API request timed out")
+        err_console.print("   The server may be processing a large number of functions")
+    except requests.exceptions.HTTPError as e:
+        err_console.print(f"❌ API Error: {response.status_code}")
+        err_console.print(f"   {response.text}")
+    except Exception as e:
+        err_console.print(f"❌ Unexpected error: {str(e)}")
