@@ -1,11 +1,9 @@
-import typer
-import json
-from rich.console import Console
 from pathlib import Path
+from rich.console import Console
+import typer
 
 from ..config import CONFIG_FILENAME
-from ..models import Project
-from ..services import read_token_from_toml, get_git_diff, parse_diff_output
+from ..services import read_token_from_toml, get_git_diff, analyze_diff, run_tests
 
 console = Console()
 err_console = Console(stderr=True)
@@ -48,30 +46,10 @@ def callback(ctx: typer.Context):
         err_console.print("ℹ️  No changes found in latest commit")
         raise typer.Exit(0)
 
-    # Step 4: Extract functions from diff
-    console.print("🔎 Extracting functions from diff...")
-    functions = parse_diff_output(diff_output)
+    # Step 4: Send diff to API for function extraction
+    console.print("🚀 Sending diff to Clepon API for function extraction...")
+    analyze_diff(project_token, diff_output)
 
-    if not functions:
-        err_console.print("ℹ️  No new functions found in latest commit")
-        raise typer.Exit(0)
-
-    console.print(f"✅ Extracted {len(functions)} new/modified functions")
-
-    # Step 5: Write output to JSON
-    project_data = Project(project_token=project_token, functions=functions)
-
-    output_path = pwd / "diff_functions.json"
-    with open(output_path, "w", encoding="utf-8") as f:
-        json.dump(project_data.model_dump(), f, indent=2)
-
-    console.print(f"✅ Wrote output to {output_path}")
-    console.print("🎉 Complete!")
-
-    # TODO: Send to API endpoint
-    # api_endpoint = "https://your-api.com/functions/diff"
-    # response = requests.post(
-    #     api_endpoint,
-    #     json=project_data.model_dump(),
-    #     headers={"Content-Type": "application/json"}
-    # )
+    # Step 5: Run unittest automatically
+    console.print("\n🧪 Running unit tests...")
+    run_tests()

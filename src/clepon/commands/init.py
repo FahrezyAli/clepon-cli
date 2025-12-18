@@ -10,6 +10,7 @@ from ..services import (
     parse_python_file,
     vectorize_project,
     generate_tests,
+    run_tests,
 )
 
 
@@ -52,3 +53,4 @@ def init():
 
     # Step 7: Run unittest automatically
     console.print("\n🧪 Running unit tests...")
+    run_tests()

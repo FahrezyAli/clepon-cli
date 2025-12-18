@@ -5,6 +5,7 @@ from .project_service import (
     parse_python_file,
     vectorize_project,
     generate_tests,
+    run_tests,
     get_git_diff,
-    parse_diff_output,
+    analyze_diff,
 )

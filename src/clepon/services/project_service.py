@@ -197,7 +197,7 @@ def generate_tests(project_id: str):
             f"{API_BASE_URL}/test-generator/{project_id}/generate",
             json={
                 "llm_provider": "gemini",
-                "llm_model": "gemini-2.5-flash",
+                "llm_model": "gemini-2.0-flash",
                 "temperature": 0.7,
             },
             headers={"Content-Type": "application/json"},
@@ -325,90 +325,61 @@ def get_git_diff() -> str:
         raise typer.Exit(1)
 
 
-def extract_function_info_from_diff(
-    node: ast.FunctionDef, filepath: str, source_code: str
-) -> Function:
-    """Extract function information from an AST node with provided source"""
-    # Generate unique ID
-    filename = Path(filepath).name
+def analyze_diff(project_id: str, diff_output: str):
+    pwd = Path.cwd()
 
-    func_id = f"{filename}:{node.name}:{node.lineno}"
-
-    # Extract source code for this specific function
-    source_lines = ast.get_source_segment(source_code, node)
-    if source_lines is None:
-        source_lines = ast.unparse(node)
-
-    # Extract arguments
-    arguments = []
-    for i, arg in enumerate(node.args.args):
-        arg_type = None
-        if arg.annotation:
-            arg_type = ast.unparse(arg.annotation)
-
-        arguments.append(
-            FunctionArgument(
-                id=f"{func_id}:arg:{i}", argument_name=arg.arg, argument_type=arg_type
-            )
+    try:
+        response = requests.post(
+            f"{API_BASE_URL}/commit-analyzer/{project_id}/analyze",
+            json={
+                "diff_text": diff_output,
+                "llm_provider": "gemini",
+                "llm_model": "gemini-2.0-flash",
+                "temperature": 0.7,
+            },
+            headers={"Content-Type": "application/json"},
+            timeout=1800,  # 30 minutes for analysis
         )
-    # Extract return type
-    output_type = None
-    if node.returns:
-        output_type = ast.unparse(node.returns)
+        response.raise_for_status()
 
-    return Function(
-        id=func_id,
-        source_code=source_lines,
-        input=arguments,
-        output_type=output_type,
-        file=filename,
-    )
+        test_results = response.json()
+        console.print(f"✅ Generated {test_results['generated']} test files")
+        console.print(f"   Total functions: {test_results['total_functions']}")
+        if test_results["failed"] > 0:
+            console.print(f"   ⚠️  Failed: {test_results['failed']}")
 
+        tests_dir = pwd / "tests"
+        tests_dir.mkdir(exist_ok=True)
 
-def parse_diff_output(diff_output: str) -> List[Function]:
-    """Extract function definitions from git diff output"""
-    functions = []
+        for filename, test_file in test_results["tests"].items():
+            test_path = tests_dir / filename
+            with open(test_path, "w", encoding="utf-8") as f:
+                f.write(test_file["content"])
+            console.print(f"📝 Wrote test file: tests/{filename}")
 
-    # Parse diff to find added Python code
-    lines = diff_output.split("\n")
-    current_file = None
-    added_code_blocks = []
-    current_block = []
+        console.print(f"✅ All test files written to {tests_dir}")
 
-    for line in lines:
-        # Track which file we're looking at
-        if line.startswith("+++ b/"):
-            current_file = line[6:]
-            if not current_file.endswith(".py"):
-                current_file = None
+    except requests.exceptions.ConnectionError as exc:
+        err_console.print(
+            "❌ Error: Could not connect to API server for test generation"
+        )
+        err_console.print(
+            f"   Please ensure the API server is accessible at {API_BASE_URL}"
+        )
+        raise typer.Exit(1) from exc
 
-        # Collect added lines (lines starting with +)
-        elif line.startswith("+") and not line.startswith("+++") and current_file:
-            # Remove the + prefix
-            code_line = line[1:]
-            current_block.append(code_line)
+    except requests.exceptions.Timeout as exc:
+        err_console.print("❌ Error: Test generation request timed out")
+        err_console.print("   The LLM may be taking longer than expected")
+        raise typer.Exit(1) from exc
 
-        # When we hit a non-added line, process the accumulated block
-        elif current_block and current_file:
-            added_code_blocks.append((current_file, "\n".join(current_block)))
-            current_block = []
+    except requests.exceptions.HTTPError as exc:
+        err_console.print(
+            f"❌ API Error during test generation: {response.status_code}"  # type: ignore
+        )
+        err_console.print(f"   {response.text}")  # type: ignore
+        raise typer.Exit(1) from exc
 
-    # Don't forget the last block
-    if current_block and current_file:
-        added_code_blocks.append((current_file, "\n".join(current_block)))
-
-    # Extract functions from added code blocks
-    for filepath, code_block in added_code_blocks:
-        try:
-            tree = ast.parse(code_block)
-            for node in ast.walk(tree):
-                if isinstance(node, ast.FunctionDef):
-                    func_info = extract_function_info_from_diff(
-                        node, filepath, code_block
-                    )
-                    functions.append(func_info)
-        except SyntaxError:
-            # Code block might be incomplete, skip it
-            continue
-
-    return functions
+    except Exception as exc:
+        err_console.print(f"❌ Unexpected error during test generation: {str(exc)}")
+        raise typer.Exit(1) from exc
