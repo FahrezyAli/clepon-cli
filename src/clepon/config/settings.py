@@ -1,2 +1,2 @@
 CONFIG_FILENAME = "clepon.toml"
-API_BASE_URL = "https://clepon.caffeine-junkie.xyz"
+API_BASE_URL = "http://127.0.0.1:8000"

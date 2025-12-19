@@ -72,7 +72,7 @@ def read_token_from_toml(config_path: Path) -> str:
     """Read the project token from the .toml file"""
     with open(config_path, "r", encoding="utf-8") as f:
         config = toml.load(f)
-    return config["project"]["token"]
+    return config["project"]["id"]
 
 
 def find_python_files(directory: Path) -> List[Path]:
