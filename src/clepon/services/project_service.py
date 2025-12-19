@@ -7,8 +7,8 @@ import toml
 import requests
 from rich.console import Console
 
-from ..models import Function, FunctionArgument, Project
 from ..config import CONFIG_FILENAME, API_BASE_URL
+from ..models import Function, FunctionArgument, Project
 
 console = Console()
 err_console = Console(stderr=True)
