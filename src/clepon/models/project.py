@@ -1,7 +1,8 @@
 from typing import List
+
 from pydantic import BaseModel
 
-from . import Function
+from .function import Function
 
 
 class Project(BaseModel):

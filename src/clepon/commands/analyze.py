@@ -1,9 +1,10 @@
 from pathlib import Path
-import typer
+
 import requests
+import typer
 from rich.console import Console
 
-from ..config import CONFIG_FILENAME, API_BASE_URL
+from ..config import API_BASE_URL, CONFIG_FILENAME
 from ..services import read_token_from_toml
 
 console = Console()

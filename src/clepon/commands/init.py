@@ -1,18 +1,17 @@
 from pathlib import Path
-from rich.console import Console
-import typer
 
+import typer
+from rich.console import Console
 
 from ..models import Project
 from ..services import (
-    generate_project,
     find_python_files,
-    parse_python_file,
-    vectorize_project,
+    generate_project,
     generate_tests,
+    parse_python_file,
     run_tests,
+    vectorize_project,
 )
-
 
 console = Console()
 err_console = Console(stderr=True)

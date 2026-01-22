@@ -1,10 +1,11 @@
 from pathlib import Path
+
 import typer
 from rich.console import Console
 
-from .config import CONFIG_FILENAME
 from .commands import analyze_app, init_app
-from .services import get_git_diff, analyze_diff, read_token_from_toml, run_tests
+from .config import CONFIG_FILENAME
+from .services import analyze_diff, get_git_diff, read_token_from_toml, run_tests
 
 console = Console()
 err_console = Console(stderr=True)

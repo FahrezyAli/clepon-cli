@@ -2,12 +2,13 @@ import ast
 import subprocess
 from pathlib import Path
 from typing import List
-import typer
-import toml
+
 import requests
+import toml
+import typer
 from rich.console import Console
 
-from ..config import CONFIG_FILENAME, API_BASE_URL
+from ..config import API_BASE_URL, CONFIG_FILENAME
 from ..models import Function, FunctionArgument, Project
 
 console = Console()

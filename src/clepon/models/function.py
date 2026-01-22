@@ -1,7 +1,8 @@
 from typing import List, Optional
+
 from pydantic import BaseModel
 
-from . import FunctionArgument
+from .function_argument import FunctionArgument
 
 
 class Function(BaseModel):
